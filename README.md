@@ -16,13 +16,13 @@ This repository contains an automated setup script (`setup.sh`) designed for new
 To run the setup script on your Ubuntu 22.04 server, execute the following command (ensure you have `curl` or `wget` installed):
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/your_username/your_repository/main/setup.sh)
+bash <(curl -s https://raw.githubusercontent.com/Eth030/ubuntu-post-install-script/main/setup.sh)
 ```
 
 Or, if you prefer `wget`:
 
 ```bash
-bash <(wget -qO- https://raw.githubusercontent.com/your_username/your_repository/main/setup.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/Eth030/ubuntu-post-install-script/main/setup.sh)
 ```
 
 ## Security Notice
