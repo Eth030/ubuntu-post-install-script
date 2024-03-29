@@ -15,39 +15,55 @@ update_system() {
 # Function to create a new user with sudo privileges
 create_user() {
     read -p "Enter the username for the new user account: " username
-    adduser --disabled-password --gecos "" "$username"
-    usermod -aG sudo "$username"
-    echo "$username has been created and added to the sudo group."
+    if id "$username" &>/dev/null; then
+        echo "User $username already exists."
+    else
+        adduser --disabled-password --gecos "" "$username"
+        usermod -aG sudo "$username"
+        echo "$username has been created and added to the sudo group."
+    fi
 }
 
 # Function to install Cockpit
 install_cockpit() {
-    echo "Installing Cockpit..."
-    apt-get install cockpit -y
-    systemctl enable --now cockpit.socket
-    echo "Cockpit installation completed. Access it via http://your_server_ip:9090."
+    if ! dpkg -l | grep -qw cockpit; then
+        echo "Installing Cockpit..."
+        apt-get install cockpit -y
+        systemctl enable --now cockpit.socket
+        echo "Cockpit installation completed. Access it via http://your_server_ip:9090."
+    else
+        echo "Cockpit is already installed."
+    fi
 }
 
 # Function to install Docker
 install_docker() {
-    echo "Installing Docker..."
-    apt-get install apt-transport-https ca-certificates curl software-properties-common -y
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-    apt-get update
-    apt-get install docker-ce -y
-    systemctl start docker
-    systemctl enable docker
-    echo "Docker installation completed."
+    if ! type docker &>/dev/null; then
+        echo "Installing Docker..."
+        apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        apt-get update
+        apt-get install docker-ce -y
+        systemctl start docker
+        systemctl enable docker
+        echo "Docker installation completed."
+    else
+        echo "Docker is already installed."
+    fi
 }
 
 # Function to deploy Portainer
 deploy_portainer() {
-    echo "Deploying Portainer..."
-    docker volume create portainer_data
-    docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always \
-        -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
-    echo "Portainer deployed. Access it via http://your_server_ip:9000."
+    if ! docker ps -a | grep -qw portainer; then
+        echo "Deploying Portainer..."
+        docker volume create portainer_data
+        docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always \
+            -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
+        echo "Portainer deployed. Access it via http://your_server_ip:9000."
+    else
+        echo "Portainer is already deployed."
+    fi
 }
 
 # Function to setup SSH Public Key Authentication
@@ -57,7 +73,6 @@ setup_ssh() {
     sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
     systemctl restart sshd
     echo "SSH has been configured to disallow root login and require public key authentication."
-    echo "IMPORTANT: Proceed to paste the public SSH key for $username."
 }
 
 # Function to capture and set up the user's SSH public key
