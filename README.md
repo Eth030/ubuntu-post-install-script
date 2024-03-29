@@ -1,4 +1,3 @@
-```
 # Ubuntu 22.04 VPS Setup Script
 
 This streamlined automation script is designed for the initial setup of Ubuntu 22.04 servers. It configures security settings and installs essential management tools.
@@ -25,4 +24,4 @@ Follow the on-screen prompts to:
 
 ## License
 Distributed under the MIT License.
-```
+
