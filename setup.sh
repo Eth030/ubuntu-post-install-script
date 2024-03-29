@@ -6,13 +6,13 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
-# Function to update and upgrade system packages
+# Define functions for each setup task
 update_system() {
     echo "Updating and upgrading system packages..."
     apt-get update && apt-get upgrade -y
+    echo "System update completed."
 }
 
-# Function to create a new user with sudo privileges
 create_user() {
     read -p "Enter the username for the new user account: " username
     if id "$username" &>/dev/null; then
@@ -24,7 +24,6 @@ create_user() {
     fi
 }
 
-# Function to install and enable firewall
 setup_firewall() {
     echo "Setting up the firewall..."
     ufw enable
@@ -33,106 +32,66 @@ setup_firewall() {
     echo "Firewall is configured and enabled."
 }
 
-# Function to enhance SSH security
-secure_ssh() {
-    echo "Securing SSH..."
-    # Additional security measures can be added here as needed
-    systemctl reload sshd
-    echo "SSH has been secured."
-}
-
-# Function to install fail2ban
 install_fail2ban() {
     echo "Installing and configuring fail2ban..."
     apt-get install fail2ban -y
-    systemctl start fail2ban
     systemctl enable fail2ban
+    systemctl start fail2ban
     echo "fail2ban is installed and running."
 }
 
-# Function to install optional software
-install_optional_software() {
-    read -p "Do you want to install Cockpit? (yes/no) " choice
-    if [[ "$choice" == "yes" ]]; then
-        apt-get install cockpit -y
-        systemctl enable --now cockpit.socket
-        echo "Cockpit installed."
-    fi
-    
-    read -p "Do you want to install Docker? (yes/no) " choice
-    if [[ "$choice" == "yes" ]]; then
-        apt-get install apt-transport-https ca-certificates curl software-properties-common -y
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-        add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        apt-get update
-        apt-get install docker-ce -y
-        systemctl start docker
-        systemctl enable docker
-        echo "Docker installed."
-    fi
-    
-    read -p "Do you want to deploy Portainer? (yes/no) " choice
-    if [[ "$choice" == "yes" ]]; then
-        docker volume create portainer_data
-        docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always \
-            -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
-        echo "Portainer deployed."
-    fi
+install_cockpit() {
+    echo "Installing Cockpit..."
+    apt-get install cockpit -y
+    systemctl enable --now cockpit.socket
+    echo "Cockpit installed."
 }
 
-# Function to capture and set up the user's SSH public key
-configure_ssh_key() {
-    echo "Please paste the public SSH key for $username:"
-    read -r sshKey
-    mkdir -p /home/"$username"/.ssh
-    echo "$sshKey" > /home/"$username"/.ssh/authorized_keys
-    chmod 700 /home/"$username"/.ssh
-    chmod 600 /home/"$username"/.ssh/authorized_keys
-    chown -R "$username":"$username" /home/"$username"/.ssh
-    echo "SSH key for $username has been configured."
+install_docker() {
+    echo "Installing Docker..."
+    apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    apt-get update
+    apt-get install docker-ce -y
+    systemctl start docker
+    systemctl enable docker
+    echo "Docker installed."
 }
 
-# Function to enhance .bashrc with a colorful prompt and useful aliases
-setup_bashrc() {
-    local bashrc_file="/home/$username/.bashrc"
-    
-    # Add colorful PS1 prompt and aliases to .bashrc
-    cat << 'EOF' >> "$bashrc_file"
-
-# Custom PS1 prompt
-export PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
-
-# Useful aliases
-alias ll='ls -lah'
-alias update='sudo apt-get update && sudo apt-get upgrade'
-alias ..='cd ..'
-alias ...='cd ../../../'
-alias ....='cd ../../../../'
-alias grep='grep --color=auto'
-alias df='df -h'
-alias du='du -h'
-EOF
-
-    # Source the .bashrc file
-    source "$bashrc_file"
+deploy_portainer() {
+    echo "Deploying Portainer..."
+    docker volume create portainer_data
+    docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
+    echo "Portainer deployed."
 }
 
-# Function to install and configure a dynamic MOTD with system stats
-setup_motd() {
-    apt-get install landscape-common -y
-    sed -i 's/^#?PRINT_MOTD=.*$/PRINT_MOTD=no/' /etc/default/console-setup
-}
+# Add new setup functions here
 
-# Main script execution
-echo "Beginning the setup process..."
-update_system
-create_user
-setup_firewall
-secure_ssh
-install_fail2ban
-install_optional_software
-configure_ssh_key
-setup_bashrc
-setup_motd
-echo "Setup process completed. Please verify all installations and configurations."
+# Display an interactive menu for the user
+while true; do
+    echo "Select an option:"
+    echo "1) Update System"
+    echo "2) Create New User"
+    echo "3) Setup Firewall"
+    echo "4) Install fail2ban"
+    echo "5) Install Cockpit"
+    echo "6) Install Docker"
+    echo "7) Deploy Portainer"
+    echo "8) Exit"
+    read -p "Option: " option
 
+    case $option in
+        1) update_system ;;
+        2) create_user ;;
+        3) setup_firewall ;;
+        4) install_fail2ban ;;
+        5) install_cockpit ;;
+        6) install_docker ;;
+        7) deploy_portainer ;;
+        8) break ;;
+        *) echo "Invalid option selected. Please try again." ;;
+    esac
+done
+
+echo "Setup process completed. Exiting."
