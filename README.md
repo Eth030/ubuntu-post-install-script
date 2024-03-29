@@ -1,30 +1,28 @@
+```
 # Ubuntu 22.04 VPS Setup Script
 
-This repository contains an automated setup script (`setup.sh`) designed for newly provisioned Ubuntu 22.04 virtual private servers (VPS). The script streamlines the initial configuration process, enhancing security and installing essential tools with minimal user interaction. It's ideal for developers, sysadmins, and anyone looking to quickly prepare a secure and functional server environment.
+This streamlined automation script is designed for the initial setup of Ubuntu 22.04 servers. It configures security settings and installs essential management tools.
 
 ## Features
+- Non-root user creation with sudo privileges
+- UFW firewall configuration for enhanced security
+- SSH hardening by disabling root login and enforcing key-based authentication
+- Fail2ban installation for additional SSH protection
+- Optional installation of Cockpit, Docker, and Portainer for easy server management and containerization
 
-- **User Creation**: Adds a new user with sudo privileges, ensuring secure operations without the root user.
-- **SSH Hardening**: Configures SSH to disable root login and password authentication, promoting the use of SSH keys for a more secure connection.
-- **Software Installations**:
-  - **Cockpit**: Provides a web-based graphical interface for server management.
-  - **Docker**: Installs Docker, enabling containerization and application isolation.
-  - **Portainer**: A lightweight Docker management UI, making container management simpler.
-
-## Usage
-
-To run the setup script on your Ubuntu 22.04 server, execute the following command (ensure you have `curl` or `wget` installed):
+## Quick Start
+Execute the following command on your server as root:
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/Eth030/ubuntu-post-install-script/main/setup.sh)
 ```
 
-Or, if you prefer `wget`:
+## Instructions
+Follow the on-screen prompts to:
+- Specify the new user's name
+- Paste the public SSH key for secure login
+- Select optional software to install
 
-```bash
-bash <(wget -qO- https://raw.githubusercontent.com/Eth030/ubuntu-post-install-script/main/setup.sh)
+## License
+Distributed under the MIT License.
 ```
-
-## Security Notice
-
-Before executing the script, review its contents to ensure its safety and applicability to your environment. Running scripts from the internet carries risks, and precautions should be taken.
