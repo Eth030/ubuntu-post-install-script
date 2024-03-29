@@ -92,6 +92,37 @@ configure_ssh_key() {
     echo "SSH key for $username has been configured."
 }
 
+# Function to enhance .bashrc with a colorful prompt and useful aliases
+setup_bashrc() {
+    local bashrc_file="/home/$username/.bashrc"
+    
+    # Add colorful PS1 prompt and aliases to .bashrc
+    cat << 'EOF' >> "$bashrc_file"
+
+# Custom PS1 prompt
+export PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+
+# Useful aliases
+alias ll='ls -lah'
+alias update='sudo apt-get update && sudo apt-get upgrade'
+alias ..='cd ..'
+alias ...='cd ../../../'
+alias ....='cd ../../../../'
+alias grep='grep --color=auto'
+alias df='df -h'
+alias du='du -h'
+EOF
+
+    # Source the .bashrc file
+    source "$bashrc_file"
+}
+
+# Function to install and configure a dynamic MOTD with system stats
+setup_motd() {
+    apt-get install landscape-common -y
+    sed -i 's/^#?PRINT_MOTD=.*$/PRINT_MOTD=no/' /etc/default/console-setup
+}
+
 # Main script execution
 echo "Beginning the setup process..."
 update_system
@@ -101,4 +132,7 @@ secure_ssh
 install_fail2ban
 install_optional_software
 configure_ssh_key
+setup_bashrc
+setup_motd
 echo "Setup process completed. Please verify all installations and configurations."
+
